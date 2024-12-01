@@ -10,22 +10,27 @@ package healthapp;
  * MentalHealthTracker.java
  */
 
+import org.jdatepicker.impl.*;
 import javax.swing.*;
-import java.awt.event.ActionEvent;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.Properties;
 
 public class MentalHealthTracker extends JFrame {
 
-    private JTextField moodInputField, deleteDateField;
+    private JTextField moodInputField;
     private JTextArea moodLogArea;
-    private JSpinner dateSpinner;
-    private ArrayList<MoodEntry> moodLog = new ArrayList<>();
+    private JDatePickerImpl datePicker;
+    private MHTrackerApp trackerApp;
 
     public MentalHealthTracker() {
-        // main frame
+        // Initialize app class
+        trackerApp = new MHTrackerApp();
+
+        // Main frame settings
         setTitle("Mental Health Tracker");
         setSize(500, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -37,60 +42,47 @@ public class MentalHealthTracker extends JFrame {
 
         // Mood input
         JLabel moodLabel = new JLabel("How do you feel today? (1-5):");
-        moodLabel.setBounds(30, 20, 200, 25);
+        moodLabel.setBounds(50, 30, 200, 25);
         panel.add(moodLabel);
-        
-        //moodinput bounds
+
         moodInputField = new JTextField();
-        moodInputField.setBounds(240, 20, 50, 25);
+        moodInputField.setBounds(250, 30, 50, 25);
         panel.add(moodInputField);
-        
-        //date label
+
+        // Date input using JDatePicker
         JLabel dateLabel = new JLabel("Select Date:");
-        dateLabel.setBounds(30, 60, 100, 25);
+        dateLabel.setBounds(50, 70, 100, 25);
         panel.add(dateLabel);
-        
-        //date source: https://www.geeksforgeeks.org/how-to-create-a-date-object-using-the-calendar-class-in-java/
-        SpinnerDateModel dateModel = new SpinnerDateModel(new Date(), null, null, java.util.Calendar.DAY_OF_MONTH);
-        dateSpinner = new JSpinner(dateModel);
-        dateSpinner.setBounds(140, 60, 150, 25);
-        JSpinner.DateEditor editor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
-        dateSpinner.setEditor(editor);
-        panel.add(dateSpinner);
-        
-        //submission for mood
+
+        datePicker = createDatePicker();
+        datePicker.setBounds(150, 70, 200, 25);
+        panel.add(datePicker);
+
+        // Submit button
         JButton submitButton = new JButton("Submit");
-        submitButton.setBounds(320, 20, 100, 30);
+        submitButton.setBounds(50, 110, 100, 30);
         panel.add(submitButton);
-
-        // mood data deletion
-        JLabel deleteLabel = new JLabel("Delete Log (yyyy-MM-dd):");
-        deleteLabel.setBounds(30, 100, 200, 25);
-        panel.add(deleteLabel);
-
-        deleteDateField = new JTextField();
-        deleteDateField.setBounds(200, 100, 150, 25);
-        panel.add(deleteDateField);
-
-        JButton deleteButton = new JButton("Delete");
-        deleteButton.setBounds(370, 100, 80, 25);
-        panel.add(deleteButton);
 
         // Mood log display
         JLabel moodLogLabel = new JLabel("Mood Logs for the last 10 days:");
-        moodLogLabel.setBounds(30, 160, 200, 25);
+        moodLogLabel.setBounds(50, 160, 200, 25);
         panel.add(moodLogLabel);
 
         moodLogArea = new JTextArea();
-        moodLogArea.setBounds(30, 190, 420, 200);
+        moodLogArea.setBounds(50, 190, 380, 200);
         moodLogArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(moodLogArea);
-        scrollPane.setBounds(30, 190, 420, 200);
+        scrollPane.setBounds(50, 190, 380, 200);
         panel.add(scrollPane);
+
+        // Delete button
+        JButton deleteButton = new JButton("Delete Log");
+        deleteButton.setBounds(50, 410, 120, 30);
+        panel.add(deleteButton);
 
         // Back button
         JButton backButton = new JButton("Back to Main Menu");
-        backButton.setBounds(175, 500, 150, 30);
+        backButton.setBounds(200, 410, 200, 30);
         panel.add(backButton);
 
         add(panel);
@@ -101,91 +93,66 @@ public class MentalHealthTracker extends JFrame {
         backButton.addActionListener(e -> dispose());
     }
 
+    private JDatePickerImpl createDatePicker() {
+        UtilDateModel model = new UtilDateModel();
+        Properties p = new Properties();
+        p.put("text.today", "Today");
+        p.put("text.month", "Month");
+        p.put("text.year", "Year");
+        JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+        return new JDatePickerImpl(datePanel, new DateLabelFormatter());
+    }
+
     private void addMoodEntry() {
         try {
-            // Get mood input
             String moodInput = moodInputField.getText();
             int mood = Integer.parseInt(moodInput);
 
-            if (mood < 1 || mood > 5) {
-                JOptionPane.showMessageDialog(this, "Please enter a mood value between 1 and 5.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            Date selectedDate = (Date) datePicker.getModel().getValue();
+            if (selectedDate == null) {
+                JOptionPane.showMessageDialog(this, "Please select a valid date.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            LocalDate localDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            boolean success = trackerApp.addMoodEntry(localDate, mood);
+
+            if (!success) {
+                JOptionPane.showMessageDialog(this, "Invalid input. Ensure mood is 1-5 and date is not in the future.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Get date input
-            Date selectedDate = (Date) dateSpinner.getValue();
-            LocalDate selectedLocalDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalDate currentDate = LocalDate.now();
-
-            // Check if the selected date is in the future
-            if (selectedLocalDate.isAfter(currentDate)) {
-                JOptionPane.showMessageDialog(this, "You cannot select a future date.", "Invalid Date", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Add mood entry to the log
-            moodLog.add(new MoodEntry(selectedLocalDate, mood));
             updateMoodLog();
-
-            // Clear input fields
             moodInputField.setText("");
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid number for mood.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please enter a valid number for mood.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void deleteMoodEntry() {
         try {
-            // Parse the date entered for deletion
-            String deleteDateInput = deleteDateField.getText();
-            LocalDate deleteDate = LocalDate.parse(deleteDateInput);
+            Date selectedDate = (Date) datePicker.getModel().getValue();
+            if (selectedDate == null) {
+                JOptionPane.showMessageDialog(this, "Please select a valid date.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            LocalDate localDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-            boolean entryFound = false;
+            boolean deleted = trackerApp.deleteMoodEntry(localDate);
 
-            // Search for and remove the matching log
-            for (int i = 0; i < moodLog.size(); i++) {
-                if (moodLog.get(i).getDate().equals(deleteDate)) {
-                    moodLog.remove(i);
-                    entryFound = true;
-                    break;
-                }
+            if (!deleted) {
+                JOptionPane.showMessageDialog(this, "No log found for the selected date.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
 
-            if (entryFound) {
-                updateMoodLog();
-                JOptionPane.showMessageDialog(this, "Mood log deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "No mood log found for the entered date.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-
-            deleteDateField.setText("");
+            updateMoodLog();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date format. Please use yyyy-MM-dd.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An error occurred while deleting the log.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void updateMoodLog() {
-        moodLogArea.setText("");
-        LocalDate tenDaysAgo = LocalDate.now().minusDays(10);
-        int totalMood = 0;
-        int count = 0;
-
-        // Filter and display only the last 10 days of mood logs
-        for (MoodEntry entry : moodLog) {
-            if (entry.getDate().isAfter(tenDaysAgo) || entry.getDate().isEqual(tenDaysAgo)) {
-                moodLogArea.append(entry + "\n");
-                totalMood += entry.getMood();
-                count++;
-            }
-        }
-
-        // Calculate and display average mood
-        if (count > 0) {
-            double averageMood = (double) totalMood / count;
-            moodLogArea.append("\nAverage Mood: " + String.format("%.2f", averageMood));
-        } else {
-            moodLogArea.append("\nNo mood logs available for the last 10 days.");
-        }
+        moodLogArea.setText(trackerApp.getMoodLog());
     }
 
     public static void main(String[] args) {
@@ -193,26 +160,21 @@ public class MentalHealthTracker extends JFrame {
     }
 }
 
-// MoodEntry class to hold mood and date
-class MoodEntry {
-    private LocalDate date;
-    private int mood;
+// Utility class for formatting date picker dates
+class DateLabelFormatter extends JFormattedTextField.AbstractFormatter {
 
-    public MoodEntry(LocalDate date, int mood) {
-        this.date = date;
-        this.mood = mood;
-    }
+    private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public int getMood() {
-        return mood;
+    @Override
+    public Object stringToValue(String text) throws ParseException {
+        return dateFormatter.parse(text);
     }
 
     @Override
-    public String toString() {
-        return date + ": Mood " + mood;
+    public String valueToString(Object value) {
+        if (value != null) {
+            return dateFormatter.format((Date) value);
+        }
+        return "";
     }
 }
