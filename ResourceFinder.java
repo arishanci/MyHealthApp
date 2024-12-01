@@ -5,8 +5,9 @@
 package healthapp;
 
 /**
- *
- * @author arish
+ * @author arisha mirza
+ * date: 01/12/24
+ * ResourceFinder.java
  */
 
 import javax.swing.*;
@@ -16,20 +17,22 @@ import java.awt.event.ActionListener;
 public class ResourceFinder extends JFrame {
     private JTextField locationField;
     private JTextArea resourceArea;
+    private JFrame parentWindow;
 
-    public ResourceFinder() {
-        // Set up the frame
+    public ResourceFinder(JFrame parentWindow) {
+        this.parentWindow = parentWindow;
+        // main frame
         setTitle("Find Mental Health Resources");
         setSize(400, 300);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Create the panel
+        // Create panel
         JPanel panel = new JPanel();
         panel.setLayout(null);
 
         // Location input label and field
-        JLabel locationLabel = new JLabel("Enter Your Location:");
+        JLabel locationLabel = new JLabel("Enter Your County:");
         locationLabel.setBounds(30, 20, 150, 25);
         panel.add(locationLabel);
 
@@ -42,24 +45,30 @@ public class ResourceFinder extends JFrame {
         findButton.setBounds(30, 60, 150, 30);
         panel.add(findButton);
 
-        // Resources display area
+        // Resources display
         resourceArea = new JTextArea();
         resourceArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(resourceArea);
-        scrollPane.setBounds(30, 110, 320, 120);
+        scrollPane.setBounds(30, 110, 320, 80);
         panel.add(scrollPane);
+        
+        JButton backButton = new JButton("Back to Mental Health Tracker");
+        backButton.setBounds(100, 200, 210, 30);
+        panel.add(backButton);
 
-        // Add functionality to the Find Resources button
+        // actions find resource button
         findButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                findResources();
-            }
+            public void actionPerformed(ActionEvent e) {findResources();
+                }
         });
+        
+        backButton.addActionListener(e -> returnToParentWindow()); //close window
 
         add(panel);
     }
-
+    
+    //logic for resource finder
     private void findResources() {
         String location = locationField.getText().trim();
 
@@ -98,5 +107,9 @@ public class ResourceFinder extends JFrame {
         };
 
         resourceArea.setText(resources);
+    }
+        private void returnToParentWindow() {
+        this.setVisible(false); // Hide the ResourceFinder window
+        parentWindow.setVisible(true);
     }
 }

@@ -33,7 +33,7 @@ public class MentalHealthTracker extends JFrame {
         // Main frame
         setTitle("Mental Health Tracker");
         setSize(500, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         // Panel
@@ -84,6 +84,7 @@ public class MentalHealthTracker extends JFrame {
         JButton resourcesButton = new JButton("Find Resources");
         resourcesButton.setBounds(50, 450, 150, 30);
         panel.add(resourcesButton);
+       
 
         // Back button
         JButton backButton = new JButton("Back to Main Menu");
@@ -95,7 +96,10 @@ public class MentalHealthTracker extends JFrame {
         // Actions all buttons
         submitButton.addActionListener(e -> addMoodEntry());
         deleteButton.addActionListener(e -> deleteMoodEntry());
-        resourcesButton.addActionListener(e -> new ResourceFinder().setVisible(true));
+        resourcesButton.addActionListener(e -> {this.setVisible(false);
+            ResourceFinder resourceFinder = new ResourceFinder(this);
+            resourceFinder.setVisible(true);
+                }); 
         backButton.addActionListener(e -> dispose());
     }
     
@@ -182,7 +186,7 @@ public class MentalHealthTracker extends JFrame {
     private void updateMoodLog() {
         moodLogArea.setText(trackerApp.getMoodLog());
     }
-    
+        
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new MentalHealthTracker().setVisible(true));
     }
