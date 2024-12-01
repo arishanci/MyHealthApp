@@ -42,7 +42,7 @@ public class MentalHealthTracker extends JFrame {
 
         // Mood input label
         JLabel moodLabel = new JLabel("How do you feel today? (1-5):");
-        moodLabel.setBounds(50, 30, 200, 25);
+        moodLabel.setBounds(50, 30, 200, 30);
         panel.add(moodLabel);
 
         moodInputField = new JTextField();
@@ -51,16 +51,16 @@ public class MentalHealthTracker extends JFrame {
 
         // Date input using JDatePicker
         JLabel dateLabel = new JLabel("Select Date:");
-        dateLabel.setBounds(50, 70, 100, 25);
+        dateLabel.setBounds(50, 70, 100, 30);
         panel.add(dateLabel);
 
         datePicker = createDatePicker();
-        datePicker.setBounds(150, 70, 200, 25);
+        datePicker.setBounds(150, 70, 200, 30);
         panel.add(datePicker);
 
         // Submit button
         JButton submitButton = new JButton("Submit");
-        submitButton.setBounds(50, 110, 100, 30);
+        submitButton.setBounds(370, 70, 80, 30);
         panel.add(submitButton);
 
         // Mood log display
@@ -77,18 +77,18 @@ public class MentalHealthTracker extends JFrame {
 
         // Delete button
         JButton deleteButton = new JButton("Delete Log");
-        deleteButton.setBounds(50, 410, 120, 30);
+        deleteButton.setBounds(180, 410, 130, 30);
         panel.add(deleteButton);
         
         // Find Resources button
         JButton resourcesButton = new JButton("Find Resources");
-        resourcesButton.setBounds(50, 450, 150, 30);
+        resourcesButton.setBounds(180, 450, 130, 30);
         panel.add(resourcesButton);
        
 
         // Back button
         JButton backButton = new JButton("Back to Main Menu");
-        backButton.setBounds(200, 410, 200, 30);
+        backButton.setBounds(145, 490, 200, 30);
         panel.add(backButton);
 
         add(panel);
